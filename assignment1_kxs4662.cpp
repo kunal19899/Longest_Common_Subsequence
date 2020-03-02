@@ -38,129 +38,38 @@ map<int, vector<int> > create_map(int sequence2[], int n){
     
 }
 
-int pointer_length(int* sequence1, int m, int n, vector< vector<int> > new_sequence){
-    
-    int *C=(int*) malloc((n+1)*sizeof(int));
-    int *J=(int*) malloc((n+1)*sizeof(int));
-    C[0] = -1;
-    int pointer = 0;
-    for (int i = 0; i < m; i++){
-        for (int j = 0; j < new_sequence[i].size(); j++){
-            if (C[0] == -1){
-                C[0] = new_sequence[i][j];
-                J[0] = sequence1[i];
-            }
-            else if (C[pointer] > new_sequence[i][j]){
-                if (pointer > 0){
-                    if (new_sequence[i][j] > C[pointer-1]){
-                        C[pointer] = new_sequence[i][j];
-                        J[pointer] = sequence1[i];
-                    }
-                }
-                else{
-                    C[pointer] = new_sequence[i][j];
-                    J[pointer] = sequence1[i];
-                }  
-            }
-            else if (C[pointer] < new_sequence[i][j]){
-                    C[pointer+1] = new_sequence[i][j];
-                    J[pointer+1] = sequence1[i];
-                    pointer++;
-            }
-        }
+int binSearchLast(int *a,int n,int key)
+{
+    // Input: int array a[] with n elements in ascending order.
+    //        int key to find.
+    // Output: Returns subscript of the last a element <= key.
+    //         Returns -1 if key<a[0].
+    // Processing: Binary search.
+    int low,high,mid;
+    low=0;
+    high=n-1;
+    // subscripts between low and high are in search range.
+    // size of range halves in each iteration.
+    // When low>high, low==high+1 and a[high]<=key and a[low]>key.
+    while (low<=high)
+    {
+        mid=(low+high)/2;
+        if (a[mid]<=key)
+            low=mid+1;
+        else
+            high=mid-1;
     }
-
-    return pointer;
-}
-
-int* LCS(int* sequence1, int m, int n, vector< vector<int> > new_sequence){
-    
-    int *C=(int*) malloc((n+1)*sizeof(int));
-    int *J=(int*) malloc((n+1)*sizeof(int));
-    C[0] = -1;
-    int pointer = 0;
-    for (int i = 0; i < m; i++){
-        for (int j = 0; j < new_sequence[i].size(); j++){
-            if (C[0] == -1){
-                C[0] = new_sequence[i][j];
-                J[0] = sequence1[i];
-            }
-            else if (C[pointer] > new_sequence[i][j]){
-                if (pointer > 0){
-                    if (new_sequence[i][j] > C[pointer-1]){
-                        C[pointer] = new_sequence[i][j];
-                        J[pointer] = sequence1[i];
-                    }
-                }
-                else{
-                    C[pointer] = new_sequence[i][j];
-                    J[pointer] = sequence1[i];
-                }  
-            }
-            else if (C[pointer] < new_sequence[i][j]){
-                    C[pointer+1] = new_sequence[i][j];
-                    J[pointer+1] = sequence1[i];
-                    pointer++;
-            }
-        }
-    }
-
-    return J;
-}
-
-int* LSIS(int* sequence1, int m, int n, vector< vector<int> > new_sequence){
-    
-    int *C=(int*) malloc((n+1)*sizeof(int));
-    int *J=(int*) malloc((n+1)*sizeof(int));
-    C[0] = -1;
-    int pointer = 0;
-    for (int i = 0; i < m; i++){
-        for (int j = 0; j < new_sequence[i].size(); j++){
-            if (C[0] == -1){
-                C[0] = new_sequence[i][j];
-                J[0] = sequence1[i];
-            }
-            else if (C[pointer] > new_sequence[i][j]){
-                if (pointer > 0){
-                    if (new_sequence[i][j] > C[pointer-1]){
-                        C[pointer] = new_sequence[i][j];
-                        J[pointer] = sequence1[i];
-                    }
-                }
-                else{
-                    C[pointer] = new_sequence[i][j];
-                    J[pointer] = sequence1[i];
-                }  
-            }
-            else if (C[pointer] < new_sequence[i][j]){
-                    C[pointer+1] = new_sequence[i][j];
-                    J[pointer+1] = sequence1[i];
-                    pointer++;
-            }
-        }
-    }
-
-    return C;
-}
-
-void print(int* arr, int pointer){
-    for (int i = 0; i < pointer+1; i++){
-        cout << arr[i] << endl;
-    }
-}
-
-void print_without(int* arr, int pointer){
-    for (int i = 0; i < pointer+1; i++){
-        cout << arr[i];
-    }
+    return high;
 }
 
 int main(){
     int m, n, trash;
+    int *y,*bsTabC,*bsTabI,*C,*j;
+    int i, k,LISlength;
     
     cin >> m >> n; // getting the size of each of the sequences
 
-    int i = 0;
+    i = 0;
     int sequence1[m];
     while (i < m){
         cin >> sequence1[i]; // values of first sequence in an array
@@ -186,43 +95,100 @@ int main(){
         auto it = map.find(sequence1[i]);
         vector<int> sequence;
         for (int j = 0; j < it->second.size(); j++){
-            // cout << it->second[j] << endl;
             sequence.push_back(it->second[j]);
         }
         new_sequence.push_back(sequence);
     }
-
-    int *C = LSIS(sequence1, m, n, new_sequence); // the Longest Strictly Increasing Substring
-    int *J = LCS(sequence1, m, n, new_sequence);    // the longest common subsequence
-    int pointer = pointer_length(sequence1, m, n, new_sequence); // gets the length of arrays C and J
-
-    // print(C, pointer);
-    cout << "Output: " << endl << pointer+1 << endl;
-    print(J, pointer);
-    cout << -1 << endl << endl;
-
-    ///////// Text in between 2 method outputs //////////////////////////////////
-    // cout << "Matrix Version:" << endl << endl;
     
-    // for (i = 0; i < m; i++){
-    //     cout << sequence1[i];
-    // }
-    // cout << endl;
-    // for (i = 0; i < m; i++){
-    //     cout << sequence2[i];
-    // }
-    // cout << endl;
+    int count;
+    for (i = 0; i < new_sequence.size(); i++){
+        for (int l = 0; l < new_sequence[i].size(); l++){
+            count++;
+        }
+    }
 
-    // cout << "LCS is ";
-    // print_without(J, pointer);
-    // cout << ", length==" << pointer+1 << endl;
-    //////////////////////////////////////////////////
+    y=(int*) malloc((count+1)*sizeof(int));
+    bsTabC=(int*) malloc((count+1)*sizeof(int));
+    bsTabI=(int*) malloc((count+1)*sizeof(int));
+    C=(int*) malloc((count+1)*sizeof(int));
+    j=(int*) malloc((count+1)*sizeof(int));
 
+    if (!y || !bsTabC || !bsTabI || !C || !j)
+    {
+        printf("malloc fail %d\n",__LINE__);
+        exit(0);
+    }
 
+    // for (i=1;i<=z;i++)
+    //     scanf("%d",y+i);
+
+    int z = 1;
+    for (i = 0; i < new_sequence.size(); i++){
+        for (int l = 0; l < new_sequence[i].size(); l++){
+            *(y+z) = new_sequence[i][l];
+            z++;
+        }
+    }
+
+   // Initialize table for binary search for DP
+    bsTabC[0]=(-999999);  // Must be smaller than all input values.
+    bsTabI[0]=0;          // Index of predecessor (0=grounded)
+    for (i=1;i<z;i++)
+    bsTabC[i]=999999;   // Must be larger than all input values.
+
+    C[0]=0;  // DP base case
+    j[0]=0;
+
+    for (i=1;i<z;i++)
+    {
+        // Find SIS that y[i] could be appended to.
+        // See CSE 2320 Notes 01 for binSearchLast()
+        k=binSearchLast(bsTabC,n+1,y[i]);
+        // y[i] only matters if it is not already in table.
+        if (bsTabC[k]<y[i]) {
+            C[i]=k+1;         // Save length of LIS for y[i]
+            j[i]=bsTabI[k];   // Predecessor of y[i]
+            bsTabC[k+1]=y[i]; // Decrease value for this length IS
+            bsTabI[k+1]=i;
+        }
+        else
+        {
+            C[i]=(-1);        // Mark as ignored
+            j[i]=(-1);
+        }
+    }
     
-    // Freeing allocated memory
-    free(J);
-    free(C);
+    for (LISlength=n;
+        bsTabC[LISlength]==999999;
+        LISlength--)
+    ;
+    vector<int> LSIS;
+    for (i=bsTabI[LISlength]; i>0; i=j[i]){
+        LSIS.push_back(y[i]);
+    }
 
+    cout << LSIS.size() << endl;
+    for (i = LSIS.size()-1; i > -1; i--){
+        int key = -1;
+        for(int j = 0; j < m; j++){
+            for (k = 0; k < new_sequence[i].size(); k++){
+                if (new_sequence[j][k] == LSIS[i]){
+                        cout << sequence1[j] << endl;
+                        key = 1;
+                        break;
+                }
+            }
+            if (key == 1)
+                break;
+        }
+    }
+    cout << -1 << endl;
+
+    // free(y);
+    // free(bsTabC);
+    // free(bsTabI);
+    // free(C);
+    // free(j);
+    
     return 0;
 }

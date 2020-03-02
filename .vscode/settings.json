@@ -12,7 +12,10 @@
         "array": "cpp",
         "iterator": "cpp",
         "memory": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "algorithm": "cpp",
+        "bitset": "cpp",
+        "chrono": "cpp"
     },
     "git.ignoreLimitWarning": true
 }
