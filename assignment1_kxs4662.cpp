@@ -4,15 +4,32 @@
     CSE 5311
 */
 
+// Compile using "g++ assignment_kxs4662.cpp"
+// Run using "./a.out < 'text_file' "
+
 
 #include <iostream>
 #include <string>
 #include <map>
 #include <vector>
+// For getrusage()
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #define MAXSIZE 25000
 
 using namespace std;
+
+float LSISstart, LSISend, LCSstart, LCSend;
+
+float CPUtime()
+{
+    struct rusage rusage;
+
+    getrusage(RUSAGE_SELF,&rusage);
+    return rusage.ru_utime.tv_sec+rusage.ru_utime.tv_usec/1000000.0
+        + rusage.ru_stime.tv_sec+rusage.ru_stime.tv_usec/1000000.0;
+}
 
 map<int, vector<int> > create_map(int sequence2[], int n){
     vector<int> numbers;
@@ -71,8 +88,8 @@ int binSearchLast(int *a,int n,int key)
 }
 
 static int *LCS(int m, int n, int sequence1[], int sequence2[]){
-    // cout << "enter LCS" << endl;
     int LCSlength;
+    LCSstart = CPUtime();
     static int LCSstring[MAXSIZE];
 
     static int cost[MAXSIZE+1][MAXSIZE+1];
@@ -98,22 +115,31 @@ static int *LCS(int m, int n, int sequence1[], int sequence2[]){
     LCSstring[LCSlength]='\0';
     i=m;
     j=n;
-    while (cost[i][j]!=0)
+    while (cost[i][j]!=0){
         if (sequence1[i-1]==sequence2[j-1])
         {
-            LCSstring[cost[i][j]-1]=sequence1[i-1];
-            i--;
-            j--;
+            if (cost[i][j-1]==cost[i-1][j]){
+                LCSstring[cost[i][j]-1]=sequence1[i-1];
+                i--;
+                j--;
+            }
+            else if (cost[i][j-1]<cost[i-1][j]){
+                i--;
+            }
+            else if (cost[i][j-1]>cost[i-1][j]){
+                j--;
+            }
         }
         else if (cost[i][j-1]<cost[i-1][j])
             i--;
-        else
+        else if (cost[i][j-1]>cost[i-1][j])
             j--;
-    
-    // for (int i = 0; i < LCSlength; i++){
-    //     cout << *(LCSstring+i) << endl;
-    // }
+        else if (cost[i][j-1]==cost[i-1][j]){
+            j--;
+        }
+    }  
 
+    LCSend = CPUtime();
     return LCSstring;
 }
 
@@ -123,7 +149,7 @@ int main(){
     int i, k, LISlength;
     
     cin >> m >> n; // getting the size of each of the sequences
-    // cout << " m and n in" << endl;
+
     i = 0;
     int sequence1[m];
     while (i < m){
@@ -132,14 +158,13 @@ int main(){
     }
 
     cin >> trash; // -1
-    // cout << " s1 in " << endl;
+
     i = 0;
     int sequence2[n];
     while (i < n){
         cin >> sequence2[i]; // values of second sequence in an array 
         i++;
     }   
-    // cout << "s2 in" << endl;
 
     cin >> trash; // -1
 
@@ -156,17 +181,12 @@ int main(){
         new_sequence.push_back(sequence);
     }
     
-    // cout << " new_sequnece" << endl;
     int count;
     for (i = 0; i < new_sequence.size(); i++){
         for (int l = 0; l < new_sequence[i].size(); l++){
-            // cout << new_sequence[i][l] << " ";
             count++;
         }
-        // cout << endl;
     }
-
-    // cout << new_sequ/ence[1][6];
 
     y=(int*) malloc((count+1)*sizeof(int));
     bsTabC=(int*) malloc((count+1)*sizeof(int));
@@ -174,15 +194,11 @@ int main(){
     C=(int*) malloc((count+1)*sizeof(int));
     j=(int*) malloc((count+1)*sizeof(int));
 
-    // cout << " mallocs" << endl;
     if (!y || !bsTabC || !bsTabI || !C || !j)
     {
         printf("malloc fail %d\n",__LINE__);
         exit(0);
     }
-
-    // for (i=1;i<=z;i++)
-    //     scanf("%d",y+i);
 
     int z = 1;
     for (i = 0; i < new_sequence.size(); i++){
@@ -202,6 +218,7 @@ int main(){
     C[0]=0;  // DP base case
     j[0]=0;
 
+    LSISstart = CPUtime();
     for (i=1;i<z;i++)
     {
         // Find SIS that y[i] could be appended to.
@@ -220,7 +237,8 @@ int main(){
             j[i]=(-1);
         }
     }
-    
+    LSISend = CPUtime();
+
     for (LISlength=n;
         bsTabC[LISlength]==999999;
         LISlength--)
@@ -230,21 +248,15 @@ int main(){
         LSIS.push_back(y[i]);
     }
 
-    // cout << "binary" << endl;
-    // cout << m << n << *sequence1 << *sequence2 << endl;
     static int *LCSstring = LCS(m, n, sequence1, sequence2);
-    // cout << "LCS" << endl;
+
     vector<int> LSISstring;
     
-
     for (i = LSIS.size()-1; i > -1; i--){
         int key = -1;
-        // cout << LSIS[i] << endl;
         for(int j = 0; j < m; j++){
             for (k = 0; k < new_sequence[j].size(); k++){
-                // cout << "j, k, size, n: " << j << " " << " " << new_sequence[j].size() << " " << k << " " << new_sequence[j][k];
                 if (new_sequence[j][k] == LSIS[i]){
-                    // cout << endl << LSIS[i] << " " << sequence1[j] << endl;
                     LSISstring.push_back(sequence1[j]);
                     key = 1;
                     break;
@@ -258,14 +270,12 @@ int main(){
     bool same = true;
     int u = 0;
     for (k = 0; k < LSIS.size(); k++){
-        // cout << *(LCSstring+k) << " " << LSISstring[k] << endl;
         if (*(LCSstring+k) != LSISstring[k]){
             same = false;
             u++;
-            // break;
         }
     }
-    // cout << LSIS.size() << endl;
+
     if (same){
         cout << LSIS.size() << endl;
         for (k = 0; k < LSIS.size(); k++){
@@ -273,11 +283,9 @@ int main(){
         }
         cout << -1 << endl;
     }
-    else{
-        cout << "The output's of the 2 methods are not the same." << endl;
-    }
     
-    // cout << u << "/" << LSIS.size() << endl;
+    cout << "LSIS time: " << LSISend-LSISstart << " s" << endl << "LCS time: " << LCSend-LCSstart << " s" <<  endl;
+
     free(y);
     free(bsTabC);
     free(bsTabI);
